@@ -1,10 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ping Pong</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-$END$
+<div class="game-container">
+
+    <header class="top-bar">
+        <h1><i class="fa-solid fa-table-tennis-paddle-ball"></i>Ping Pong</h1>
+        <button id="btnPause" class="btn btn-icon" title="Tạm ngưng / Tiếp tục (phím P)">
+            <i id="pauseIcon" class="fa-solid fa-pause"></i>
+        </button>
+    </header>
+
+    <nav class="level-selector">
+        <span class="label">Level:</span>
+        <div id="levelBtn"></div>
+    </nav>
+
+    <section class="hud">
+        <div id="levelName" class="level-title"></div>
+        <div id="levelDesc" class="level-desc"></div>
+        <div class="stats">
+            <span class="stat" id="lives"></span>
+            <span class="stat"><i class="fa-solid fa-star"></i><span id="score">0</span></span>
+            <span class="stat"><i class="fa-solid fa-gauge-high"></i><span id="speed">0</span></span>
+        </div>
+    </section>
+
+    <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="480" height="640"></canvas>
+    </div>
+
+    <p class="guide">
+        Di chuyển: chuột hoặc phím ← → (A / D).<br>
+        Bắn bóng: Space hoặc click vào màn chơi. Tạm ngưng: phím P.
+    </p>
+</div>
+
+<script src="index.js"></script>
 </body>
 </html>
