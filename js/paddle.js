@@ -30,7 +30,7 @@ class Paddle {
     // Không cho pad ra khỏi màn chơi
     keepInside() {
         if (this.x < 0) this.x = 0; //left
-        if (this.x + this.width > CAN_W) this.x = CAN_H- this.width; //right
+        if (this.x + this.width > CAN_W) this.x = CAN_W- this.width; //right
     }
 
     update(step) {

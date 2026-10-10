@@ -19,12 +19,11 @@
 
     <nav class="level-selector">
         <span class="label">Level:</span>
-        <div id="levelBtn"></div>
+        <div id="levelBtns"></div>
     </nav>
 
     <section class="hud">
         <div id="levelName" class="level-title"></div>
-        <div id="levelDesc" class="level-desc"></div>
         <div class="stats">
             <span class="stat" id="lives"></span>
             <span class="stat"><i class="fa-solid fa-star"></i><span id="score">0</span></span>
@@ -33,7 +32,7 @@
     </section>
 
     <div class="canvas-wrapper">
-        <canvas id="gameCanvas" width="480" height="640"></canvas>
+        <canvas id="gameCanvas" width="680" height="640"></canvas>
     </div>
 
     <p class="guide">
@@ -42,7 +41,18 @@
     </p>
 </div>
 
-<script src="config.js"></script><!--config game stats-->
-<script src="brick.js"></script> <!--brick config-->
+<script src="js/config.js"></script><!--config game stats-->
+<script src="js/brick.js"></script> <!--brick config-->
+<script src="js/paddle.js"></script><!--paddle config-->
+<script src="js/ball.js"></script><!--ball config-->
+<script src="js/game.js"></script><!--game config-->
+<script>
+    window.addEventListener("load", () => {
+        const canvas = document.getElementById("gameCanvas");
+        if (canvas) {
+            window.game = new Game(canvas);
+        }
+    });
+</script>
 </body>
 </html>

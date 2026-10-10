@@ -25,7 +25,7 @@ class Ball{
 
         if (this.x - this.radius < 0) {
             this.x = this.radius;
-            this.dx = Math.abs(this.dx);.
+            this.dx = Math.abs(this.dx);
         }
         if (this.x + this.radius > CAN_W) {
             this.x = CAN_W - this.radius;

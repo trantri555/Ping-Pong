@@ -17,7 +17,7 @@ class Brick {
     }
 
     hit() {
-        if (thís.isUnbreakable()) return;
+        if (this.isUnbreakable()) return;
         this.hp--;
     }
 
