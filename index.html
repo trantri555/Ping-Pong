@@ -33,6 +33,18 @@
 
     <div class="canvas-wrapper">
         <canvas id="gameCanvas" width="680" height="640"></canvas>
+        <div id="overlay" class="overlay hidden">
+            <div class="overlay-box">
+                <h2 id="overlayTitle"></h2>
+                <p id="overlayText"></p>
+                <button id="btnReplay" class="btn btn-large" title="Chơi lại">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <button id="btnNext" class="btn btn-large" title="Level tiếp theo">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     <p class="guide">
@@ -46,13 +58,5 @@
 <script src="js/paddle.js"></script><!--paddle config-->
 <script src="js/ball.js"></script><!--ball config-->
 <script src="js/game.js"></script><!--game config-->
-<script>
-    window.addEventListener("load", () => {
-        const canvas = document.getElementById("gameCanvas");
-        if (canvas) {
-            window.game = new Game(canvas);
-        }
-    });
-</script>
 </body>
 </html>
