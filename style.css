@@ -14,7 +14,6 @@ body {
   padding: 16px;
 }
 
-
 .game-container {
   width: 100%;
   max-width: 480px;
@@ -127,6 +126,37 @@ body {
   width: 100%;
   height: auto;
   touch-action: none;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-box {
+  background: #1b2430;
+  border: 3px solid #48dbfb;
+  border-radius: 6px;
+  padding: 24px;
+  min-width: 240px;
+  text-align: center;
+}
+.overlay-box h2 {
+  margin-bottom: 8px;
+}
+.overlay-box p {
+  color: #a4b0be;
+  margin-bottom: 16px;
+}
+
+.hidden {
+  display: none;
 }
 
 .guide {

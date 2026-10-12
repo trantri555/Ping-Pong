@@ -150,7 +150,7 @@ body {
   }
 }
 
-//
+// Canvas
 
 .canvas-wrapper {
   position: relative;
@@ -164,6 +164,40 @@ body {
     height: auto;
     touch-action: none;
   }
+}
+
+// KQ
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-box {
+  background: $bg-page;
+  border: 3px solid $basic-brick;
+  border-radius: $radius;
+  padding: 24px;
+  min-width: 240px;
+  text-align: center;
+
+  h2 {
+    margin-bottom: 8px;
+  }
+
+  p {
+    color: $text-muted;
+    margin-bottom: 16px;
+  }
+}
+
+.hidden {
+  display: none;
 }
 
 // GUIDE

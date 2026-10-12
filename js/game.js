@@ -31,7 +31,6 @@ class Game {
         this.pauseIcon = document.getElementById("pauseIcon");
         this.levelButtonsBox = document.getElementById("levelBtns");
         this.levelNameEl = document.getElementById("levelName");
-        this.levelDescEl = document.getElementById("levelDesc");
         this.livesEl = document.getElementById("lives");
         this.scoreEl = document.getElementById("score");
         this.speedEl = document.getElementById("speed");
@@ -67,7 +66,7 @@ class Game {
                 e.preventDefault();
                 this.launchBall();
             }
-            if (e.code === "KeyP") return;/*this.togglePause();*/
+            if (e.code === "KeyP") this.togglePause();
         });
         document.addEventListener("keyup", (e) => {
             if (e.code === "ArrowLeft" || e.code === "KeyA") this.paddle.movingLeft = false;
@@ -80,7 +79,7 @@ class Game {
 
         // Btns
         this.btnPause.addEventListener("click", () => {
-            // this.togglePause();
+            this.togglePause();
             this.btnPause.blur();
         });
         this.btnReplay.addEventListener("click", () => {
@@ -111,6 +110,9 @@ class Game {
         this.bricks = this.createBricks(this.level.layout);
         this.resetBall();
 
+        this.hideOverlay();
+        this.updatePauseIcon();
+        this.updateLevelButtons();
         this.updateHud();
     }
 
@@ -150,7 +152,7 @@ class Game {
         if (this.scoreEl) this.scoreEl.textContent = this.score;
         if (this.speedEl) this.speedEl.textContent = this.currSpd.toFixed(1);
 
-        // Hiển thị số mạng bằng icon trái tim
+        // Hiển thị số mạng
         if (this.livesEl) {
             let heartsHtml = "";
             for (let i = 0; i < this.lives; i++) {
@@ -161,23 +163,23 @@ class Game {
     }
 
     draw() {
-        const ctx = this.context;
-
-        // Xóa/tô màu nền cho canvas
-        ctx.fillStyle = COLORS.bg;
-        ctx.fillRect(0, 0, CAN_W, CAN_H);
-
-        // Vẽ từng viên gạch trong mảng
+        const context = this.context;
+        context.fillStyle = COLORS.bg;
+        context.fillRect(0, 0, CAN_W, CAN_H);
         for (const brick of this.bricks) {
-            brick.draw(ctx);
+            brick.draw(context);
+        }
+        this.paddle.draw(context);
+        for (const ball of this.balls) {
+            ball.draw(context);
         }
 
-        // Vẽ thanh đỡ (paddle)
-        this.paddle.draw(ctx);
-
-        // Vẽ bóng
-        for (const ball of this.balls) {
-            ball.draw(ctx);
+        if (this.state === "ready" && !this.isPaused) {
+            this.drawText("Space hoặc click để bắn bóng", 460, false);
+        }
+        // Chữ báo tạm ngưng
+        if (this.isPaused) {
+            this.drawText("TẠM NGƯNG", CANVAS_HEIGHT / 2, true);
         }
     }
 
@@ -193,11 +195,14 @@ class Game {
 
     //  Vòng lặp game
     gameLoop(time) {
-        // step = 1 nghĩa là đúng 1 frame ở 60fps, giúp game chạy đều trên màn hình 60Hz / 144Hz
         const deltaTime = time - this.lastTime;
         this.lastTime = time;
         const step = Math.min(deltaTime / 16.67, 2);
 
+
+        if (!this.isPaused) {
+            this.update(step);
+        }
         this.update(step);
         this.draw();
 
@@ -280,12 +285,7 @@ class Game {
 
     winLevel() {
         this.state = "won";
-        const isLastLevel = this.levelIndex === LEVELS.length - 1;
-        if (isLastLevel) {
-            this.showOverlay("Chiến thắng!", "Bạn đã vượt qua cả 6 level. Điểm: " + this.score, false);
-        } else {
-            this.showOverlay("Hoàn thành Level " + (this.levelIndex + 1), "Điểm: " + this.score, true);
-        }
+        this.showOverlay("Hoàn thành Level " + (this.levelIndex + 1), "Điểm: " + this.score, true);
     }
 
     isBallTouchingBrick(ball, brick) {
@@ -342,8 +342,43 @@ class Game {
         this.overlay.classList.remove("hidden");
     }
 
+    hideOverlay() {
+        this.overlay.classList.add("hidden");
+    }
 
+    togglePause() {
+        if (this.state === "won" || this.state === "lost") return;
+        this.isPaused = !this.isPaused;
+        this.updatePauseIcon();
+    }
 
+    updatePauseIcon() {
+        if (this.isPaused) {
+            this.pauseIcon.className = "fa-solid fa-play";
+        } else {
+            this.pauseIcon.className = "fa-solid fa-pause";
+        }
+    }
+
+    updateLevelButtons() {
+        for (let i = 0; i < this.levelBtns.length; i++) {
+            this.levelBtns[i].classList.toggle("active", i === this.levelIndex);
+        }
+    }
+    drawText(text, y, withBox) {
+        const context = this.context;
+        context.font = "bold 20px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        if (withBox) {
+            const boxW = context.measureText(text).width + 40;
+            context.fillStyle = COLORS.textBoxBg;
+            context.fillRect((CAN_W - boxW) / 2, y - 24, boxW, 48);
+        }
+        context.fillStyle = COLORS.text;
+        context.fillText(text, CAN_W / 2, y);
+    }
 }
 window.addEventListener("load", () => {
     const canvas = document.getElementById("gameCanvas");
