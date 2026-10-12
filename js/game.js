@@ -177,9 +177,8 @@ class Game {
         if (this.state === "ready" && !this.isPaused) {
             this.drawText("Space hoặc click để bắn bóng", 460, false);
         }
-        // Chữ báo tạm ngưng
         if (this.isPaused) {
-            this.drawText("TẠM NGƯNG", CANVAS_HEIGHT / 2, true);
+            this.drawText("TẠM NGƯNG", CAN_H / 2, true);
         }
     }
 
@@ -203,7 +202,6 @@ class Game {
         if (!this.isPaused) {
             this.update(step);
         }
-        this.update(step);
         this.draw();
 
         requestAnimationFrame((t) => this.gameLoop(t));

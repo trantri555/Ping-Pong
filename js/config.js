@@ -34,7 +34,7 @@ BRICK_SETTING.offsetLeft = (CAN_W - brickTotalW) / 2; //căn gap canvas - bricks
 
 const LEVELS = [{
     name: "Cơ bản",
-    ballsSpd: 4.5,
+    ballsSpd: 5.5,
     spdUpPerHit: 0,
     maxSpd: 4.5,
     padW: DEF_PAD_W,
