@@ -1,19 +1,19 @@
-// ---------- Biến màu ----------
-$bg-page: #1b2430;
-$bg-canvas: #222f3e;
-$btn-color: #2f3d50;
-$btn-hover: #3d4f66;
-$text-main: #ffffff;
-$text-muted: #a4b0be;
-$basic-brick: #48dbfb;
-$paddle: #f368e0;
+//  Biến màu 
+$bg-page: #dfe4ea;
+$bg-canvas: #f1f2f6;
+$btn-color: #ced6e0;
+$btn-hover: #a4b0be;
+$text-main: #2f3542;
+$text-muted: #57606f;
+$basic-brick: #2e86de;
+$paddle: #5f27cd;
 $lives: #ee5253;
-$star: #feca57;
+$star: #e58e0a;
 
 $radius: 6px;
 $game-width: 480px;
 
-// ---------- Reset cơ bản ----------
+  //  Reset cơ bản
 * {
   box-sizing: border-box;
   margin: 0;
@@ -35,7 +35,7 @@ body {
   max-width: $game-width;
 }
 
-// ---------- Thanh trên cùng ----------
+//  Thanh trên cùng 
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -52,7 +52,7 @@ body {
   }
 }
 
-// ---------- Nút bấm ----------
+//  Nút bấm 
 .btn {
   background: $btn-color;
   color: $text-main;
@@ -76,7 +76,7 @@ body {
   margin: 0 4px;
 }
 
-// ---------- Chọn level ----------
+//  Chọn level 
 .level-selector {
   display: flex;
   align-items: center;
@@ -106,7 +106,7 @@ body {
   }
 }
 
-// ---------- Bảng thông tin ----------
+//  Bảng thông tin 
 .hud {
   background: $bg-canvas;
   border-radius: $radius;

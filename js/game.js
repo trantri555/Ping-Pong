@@ -1,9 +1,82 @@
+const CAN_W = 900;
+const CAN_H = 940;
+
+const MAX_LIVES = 3;
+const BALL_RAD = 15;
+const MAX_BALL = 9;
+const MAX_BOUNCE_ANGLE = 60 * Math.PI / 180; //góc bật 60 độ giữ bóng ko đi ngang khi chạm méo paddle làm chờ lâu
+const MIN_Y_RATIO = 0.3;
+const DEF_PAD_W = 100;
+
+const COLORS = {
+    bg: "#f1f2f6",          //  xám rất nhạt
+    pad: "#5f27cd",         //  tím
+    ball: "#1e272e",        //  đen xám
+    brick1: "#2e86de",      //  xanh dương
+    brick2: "#ff9f43",      //  cam
+    brick3: "#ee5253",      //  đỏ
+    brickSteel: "#747d8c",  //  xám đậm
+    brickMulti: "#10ac84",  //  xanh lá
+    text: "#2f3542",
+    textBoxBg: "#ced6e0"
+};
+
+const BRICK_SETTING = {
+    cols: 11,
+    width: 75,
+    height: 40,
+    gap: 4,
+    offsetTop: 50
+};
+
+const brickTotalW = BRICK_SETTING.cols * BRICK_SETTING.width + BRICK_SETTING.gap * (BRICK_SETTING.cols - 1);
+BRICK_SETTING.offsetLeft = (CAN_W - brickTotalW) / 2; //căn gap canvas - bricks
+
+const LEVELS = [{
+    name: "Cơ bản",
+    ballsSpd: 5.5,
+    spdUpPerHit: 0,
+    maxSpd: 5.5,
+    padW: DEF_PAD_W,
+    layout: [
+        ".....1.....",
+        "....111....",
+        "...11111...",
+        "..1111111..",
+        ".111111111.",
+        "11111111111",
+        ".111111111.",
+        "..1111111..",
+        "...11111...",
+        "....111....",
+        ".....1....."
+    ]
+},
+    {
+        name: "Gạch cứng hơn",
+        ballsSpd: 6.0,
+        spdUpPerHit: 0,
+        maxSpd: 5.5,
+        padW: DEF_PAD_W,
+        layout: [
+            ".121X1X121.",
+            ".121X1X121.",
+            ".121X1X121.",
+            ".121X1X121.",
+            ".121X1X121.",
+            ".121X1X121.",
+            ".121X1X121."
+        ]
+    },
+
+];
+
 class Game {
     constructor(canvas) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
 
-        this.paddle = new Paddle(DEF_PAD_W);
+        this.paddle = this.createPaddle(DEF_PAD_W);
         this.balls = [];
         this.newBalls = [];
         this.bricks = [];
@@ -24,6 +97,141 @@ class Game {
 
         this.lastTime = performance.now();
         requestAnimationFrame((time) => this.gameLoop(time));
+    }
+
+    // Ball
+    createBall(x, y, radius) {
+        return {
+            x: x,
+            y: y,
+            radius: radius,
+            dx: 0,
+            dy: 0
+        };
+    }
+
+    // pytagon
+    getBallSpeed(ball) {
+        return Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+    }
+
+    setBallSpeed(ball, newSpeed) {
+        const currSpeed = this.getBallSpeed(ball);
+        if (currSpeed === 0) return;
+        ball.dx = ball.dx / currSpeed * newSpeed;
+        ball.dy = ball.dy / currSpeed * newSpeed;
+    }
+
+    updateBall(ball, step) {
+        ball.x += ball.dx * step;
+        ball.y += ball.dy * step;
+
+        if (ball.x - ball.radius < 0) {
+            ball.x = ball.radius;
+            ball.dx = Math.abs(ball.dx);
+        }
+        if (ball.x + ball.radius > CAN_W) {
+            ball.x = CAN_W - ball.radius;
+            ball.dx = -Math.abs(ball.dx);
+        }
+        if (ball.y - ball.radius < 0) {
+            ball.y = ball.radius;
+            ball.dy = Math.abs(ball.dy);
+        }
+    }
+
+    drawBall(ball) {
+        const context = this.context;
+        context.fillStyle = COLORS.ball;
+        context.beginPath();
+        context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        context.fill();
+    }
+
+    // Brick
+    createBrick(x, y, width, height, type, hp) {
+        return {
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+            type: type,
+            hp: hp
+        };
+    }
+
+    isBrickUnbreakable(brick) {
+        return brick.type === "steel";
+    }
+
+    isBrickBreaked(brick) {
+        return brick.hp <= 0;
+    }
+
+    hitBrick(brick) {
+        if (this.isBrickUnbreakable(brick)) return;
+        brick.hp--;
+    }
+
+    getBrickColor(brick) {
+        if (brick.type === "steel") return COLORS.brickSteel;
+        if (brick.type === "multi") return COLORS.brickMulti;
+        if (brick.hp === 3 || brick.type === "3") return COLORS.brick3;
+        if (brick.hp === 2 || brick.type === "2") return COLORS.brick2;
+        return COLORS.brick1;
+    }
+
+    drawBrick(brick) {
+        this.context.fillStyle = this.getBrickColor(brick);
+        this.context.fillRect(brick.x, brick.y, brick.width, brick.height);
+    }
+
+    // PAddle
+    createPaddle(width) {
+        return {
+            width: width,
+            height: 15,
+            x: (CAN_W - width) / 2,
+            y: CAN_H - 40,
+            padSpd: 10,
+            moveLeft: false,
+            moveRight: false
+        };
+    }
+
+    getPaddleCenterX() {
+        return this.paddle.x + this.paddle.width / 2;
+    }
+
+    // Đổi kích thước pad nhưng vẫn giữ nguyên tâm
+    setPaddleWidth(newWidth) {
+        const center = this.getPaddleCenterX();
+        this.paddle.width = newWidth;
+        this.paddle.x = center - newWidth / 2;
+        this.keepPaddleInside();
+    }
+
+    // Di chuyển pad theo vị trí chuột
+    movePaddleToX(centerX) {
+        this.paddle.x = centerX - this.paddle.width / 2;
+        this.keepPaddleInside();
+    }
+
+    // Không cho pad ra khỏi màn chơi
+    keepPaddleInside() {
+        if (this.paddle.x < 0) this.paddle.x = 0; //left
+        if (this.paddle.x + this.paddle.width > CAN_W) this.paddle.x = CAN_W - this.paddle.width; //right
+    }
+
+    updatePaddle(step) {
+        if (this.paddle.moveLeft) this.paddle.x -= this.paddle.padSpd * step;
+        if (this.paddle.moveRight) this.paddle.x += this.paddle.padSpd * step;
+        this.keepPaddleInside();
+    }
+
+    drawPaddle() {
+        this.context.fillStyle = COLORS.pad;
+        this.context.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, this.paddle.height);
     }
 
     getElements() {
@@ -60,8 +268,8 @@ class Game {
     bindEvs() {
         // keyboard
         document.addEventListener("keydown", (e) => {
-            if (e.code === "ArrowLeft" || e.code === "KeyA") this.paddle.movingLeft = true;
-            if (e.code === "ArrowRight" || e.code === "KeyD") this.paddle.movingRight = true;
+            if (e.code === "ArrowLeft" || e.code === "KeyA") this.paddle.moveLeft = true;
+            if (e.code === "ArrowRight" || e.code === "KeyD") this.paddle.moveRight = true;
             if (e.code === "Space") {
                 e.preventDefault();
                 this.launchBall();
@@ -69,11 +277,11 @@ class Game {
             if (e.code === "KeyP") this.togglePause();
         });
         document.addEventListener("keyup", (e) => {
-            if (e.code === "ArrowLeft" || e.code === "KeyA") this.paddle.movingLeft = false;
-            if (e.code === "ArrowRight" || e.code === "KeyD") this.paddle.movingRight = false;
+            if (e.code === "ArrowLeft" || e.code === "KeyA") this.paddle.moveLeft = false;
+            if (e.code === "ArrowRight" || e.code === "KeyD") this.paddle.moveRight = false;
         });
 
-        // Chuột 
+        // Chuột
         this.canvas.addEventListener("mousemove", (e) => this.movePaddleByPointer(e.clientX));
         this.canvas.addEventListener("click", () => this.launchBall());
 
@@ -95,8 +303,8 @@ class Game {
     movePaddleByPointer(clientX) {
         if (this.isPaused) return;
         const rect = this.canvas.getBoundingClientRect();
-        const scale = CAN_W/ rect.width;
-        this.paddle.moveToX((clientX - rect.left) * scale);
+        const scale = CAN_W / rect.width;
+        this.movePaddleToX((clientX - rect.left) * scale);
     }
 
     loadLevel(index) {
@@ -106,7 +314,7 @@ class Game {
         this.lives = MAX_LIVES;
         this.isPaused = false;
 
-        this.paddle.setWidth(this.level.padW);
+        this.setPaddleWidth(this.level.padW);
         this.bricks = this.createBricks(this.level.layout);
         this.resetBall();
 
@@ -129,11 +337,11 @@ class Game {
                 const y = setting.offsetTop + row * (setting.height + setting.gap);
 
                 if (char === "X") {
-                    bricks.push(new Brick(x, y, setting.width, setting.height, "steel", Infinity));
+                    bricks.push(this.createBrick(x, y, setting.width, setting.height, "steel", Infinity));
                 } else if (char === "M") {
-                    bricks.push(new Brick(x, y, setting.width, setting.height, "multi", 1));
+                    bricks.push(this.createBrick(x, y, setting.width, setting.height, "multi", 1));
                 } else {
-                    bricks.push(new Brick(x, y, setting.width, setting.height, "normal", Number(char)));
+                    bricks.push(this.createBrick(x, y, setting.width, setting.height, "normal", Number(char)));
                 }
             }
         }
@@ -142,7 +350,7 @@ class Game {
 
     resetBall() {
         this.currSpd = this.level.ballsSpd;
-        this.balls = [new Ball(this.paddle.getCenterX(), this.paddle.y - BALL_RAD, BALL_RAD)];
+        this.balls = [this.createBall(this.getPaddleCenterX(), this.paddle.y - BALL_RAD, BALL_RAD)];
         this.newBalls = [];
         this.state = "ready";
     }
@@ -167,15 +375,15 @@ class Game {
         context.fillStyle = COLORS.bg;
         context.fillRect(0, 0, CAN_W, CAN_H);
         for (const brick of this.bricks) {
-            brick.draw(context);
+            this.drawBrick(brick);
         }
-        this.paddle.draw(context);
+        this.drawPaddle();
         for (const ball of this.balls) {
-            ball.draw(context);
+            this.drawBall(ball);
         }
 
         if (this.state === "ready" && !this.isPaused) {
-            this.drawText("Space hoặc click để bắn bóng", 460, false);
+            this.drawText("Space hoặc click để bắn bóng", 660, false);
         }
         if (this.isPaused) {
             this.drawText("TẠM NGƯNG", CAN_H / 2, true);
@@ -208,22 +416,22 @@ class Game {
     }
 
     update(step) {
-        this.paddle.update(step);
+        this.updatePaddle(step);
 
         if (this.state === "ready") {
-            this.balls[0].x = this.paddle.getCenterX();
+            this.balls[0].x = this.getPaddleCenterX();
             this.balls[0].y = this.paddle.y - BALL_RAD;
             return;
         }
         if (this.state !== "playing") return;
         for (const ball of this.balls) {
-            ball.update(step);
+            this.updateBall(ball, step);
             this.checkPaddleCollision(ball);
             this.checkBrickCollision(ball);
         }
         this.balls = this.balls.concat(this.newBalls);
         this.newBalls = [];
-        this.bricks = this.bricks.filter((brick) => !brick.isBreaked());
+        this.bricks = this.bricks.filter((brick) => !this.isBrickBreaked(brick));
         this.balls = this.balls.filter((ball) => ball.y - ball.radius < CAN_H);
 
         if (this.balls.length === 0) {
@@ -243,12 +451,12 @@ class Game {
         if (!touchY || !touchX) return;
 
         // hitPos từ -1 (mép trái) đến 1 (mép phải): càng xa tâm, bóng càng nảy xiên
-        let hitPos = (ball.x - p.getCenterX())/(p.width / 2);
+        let hitPos = (ball.x - this.getPaddleCenterX()) / (p.width / 2);
         if (hitPos < -1) hitPos = -1;
         if (hitPos > 1) hitPos = 1;
 
         const angle = hitPos * MAX_BOUNCE_ANGLE;
-        const speed = ball.getSpeed();
+        const speed = this.getBallSpeed(ball);
         ball.dx = speed * Math.sin(angle);
         ball.dy = -speed * Math.cos(angle);
         ball.y = p.y - ball.radius;
@@ -256,7 +464,7 @@ class Game {
 
     checkBrickCollision(ball) {
         for (const brick of this.bricks) {
-            if (brick.isBreaked()) continue;
+            if (this.isBrickBreaked(brick)) continue;
             if (!this.isBallTouchingBrick(ball, brick)) continue;
 
             this.bounceBallOffBrick(ball, brick);
@@ -278,7 +486,7 @@ class Game {
     }
 
     isLevelCleared() {
-        return this.bricks.every((brick) => brick.isUnbreakable());
+        return this.bricks.every((brick) => this.isBrickUnbreakable(brick));
     }
 
     winLevel() {
@@ -325,9 +533,9 @@ class Game {
     }
 
     onBrickHit(ball, brick) {
-        if (brick.isUnbreakable()) return;
+        if (this.isBrickUnbreakable(brick)) return;
 
-        brick.hit();
+        this.hitBrick(brick);
         this.score += 10;
 
         // thêm các loại khác sau này

@@ -5,8 +5,8 @@
 }
 
 body {
-  background: #1b2430;
-  color: #ffffff;
+  background: #dfe4ea;
+  color: #2f3542;
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
   display: flex;
@@ -29,20 +29,20 @@ body {
   font-size: 22px;
 }
 .top-bar h1 i {
-  color: #f368e0;
+  color: #5f27cd;
   margin-right: 8px;
 }
 
 .btn {
-  background: #2f3d50;
-  color: #ffffff;
+  background: #ced6e0;
+  color: #2f3542;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
 }
 .btn:hover {
-  background: #3d4f66;
+  background: #a4b0be;
 }
 
 .btn-icon {
@@ -62,7 +62,7 @@ body {
   margin-bottom: 12px;
 }
 .level-selector .label {
-  color: #a4b0be;
+  color: #57606f;
   font-size: 14px;
 }
 .level-selector #levelBtns {
@@ -75,12 +75,12 @@ body {
   font-weight: bold;
 }
 .level-selector .level-btn.active {
-  background: #48dbfb;
-  color: #222f3e;
+  background: #2e86de;
+  color: #f1f2f6;
 }
 
 .hud {
-  background: #222f3e;
+  background: #f1f2f6;
   border-radius: 6px;
   padding: 10px 12px;
   margin-bottom: 12px;
@@ -88,11 +88,11 @@ body {
 .hud .level-title {
   font-size: 16px;
   font-weight: bold;
-  color: #48dbfb;
+  color: #2e86de;
 }
 .hud .level-desc {
   font-size: 13px;
-  color: #a4b0be;
+  color: #57606f;
   line-height: 1.4;
   margin: 4px 0 8px;
 }
@@ -108,16 +108,16 @@ body {
   color: #ee5253;
 }
 .hud .fa-star {
-  color: #feca57;
+  color: #e58e0a;
 }
 .hud .fa-gauge-high {
-  color: #48dbfb;
+  color: #2e86de;
   margin-right: 6px;
 }
 
 .canvas-wrapper {
   position: relative;
-  background: #222f3e;
+  background: #f1f2f6;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -140,8 +140,8 @@ body {
 }
 
 .overlay-box {
-  background: #1b2430;
-  border: 3px solid #48dbfb;
+  background: #dfe4ea;
+  border: 3px solid #2e86de;
   border-radius: 6px;
   padding: 24px;
   min-width: 240px;
@@ -151,7 +151,7 @@ body {
   margin-bottom: 8px;
 }
 .overlay-box p {
-  color: #a4b0be;
+  color: #57606f;
   margin-bottom: 16px;
 }
 
@@ -162,7 +162,7 @@ body {
 .guide {
   margin-top: 12px;
   font-size: 13px;
-  color: #a4b0be;
+  color: #57606f;
   line-height: 1.5;
 }
 
