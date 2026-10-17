@@ -3,9 +3,8 @@ const CAN_H = 940;
 
 const MAX_LIVES = 3;
 const BALL_RAD = 15;
-const MAX_BALL = 9;
+const MAX_BALL = 5;
 const MAX_BOUNCE_ANGLE = 60 * Math.PI / 180; //góc bật 60 độ giữ bóng ko đi ngang khi chạm méo paddle làm chờ lâu
-const MIN_Y_RATIO = 0.3;
 const DEF_PAD_W = 100;
 
 const COLORS = {
@@ -19,6 +18,10 @@ const COLORS = {
     brickMulti: "#10ac84",  //  xanh lá
     text: "#2f3542",
     textBoxBg: "#ced6e0"
+};
+
+const BRICK_ICONS = {
+    multi: "\uf055",   // fa-circle-plus : gạch sinh thêm bóng
 };
 
 const BRICK_SETTING = {
@@ -67,7 +70,23 @@ const LEVELS = [{
             ".121X1X121.",
             ".121X1X121."
         ]
-    },
+    }, {
+        name: "X3 bóng - Tằng tốc mỗi lần bóng chạm gạch",
+        ballsSpd: 5.5,
+        spdUpPerHit: 0.1,
+        maxSpd: 11.0,
+        padW: DEF_PAD_W,
+        layout: [
+            "...22222...",
+            "22223332222",
+            ".111111111.",
+            ".1XX111XX1.",
+            ".1XX111XX1.",
+            ".112M1M211.",
+            ".112111211.",
+            ".112111211."
+        ]
+    }
 
 ];
 
@@ -115,11 +134,11 @@ class Game {
         return Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
     }
 
-    setBallSpeed(ball, newSpeed) {
-        const currSpeed = this.getBallSpeed(ball);
-        if (currSpeed === 0) return;
-        ball.dx = ball.dx / currSpeed * newSpeed;
-        ball.dy = ball.dy / currSpeed * newSpeed;
+    setBallSpeed(ball, newSpd) {
+        const currSpd = this.getBallSpeed(ball);
+        if (currSpd === 0) return;
+        ball.dx = ball.dx / currSpd * newSpd;
+        ball.dy = ball.dy / currSpd * newSpd;
     }
 
     updateBall(ball, step) {
@@ -182,8 +201,18 @@ class Game {
     }
 
     drawBrick(brick) {
+        const context = this.context;
         this.context.fillStyle = this.getBrickColor(brick);
         this.context.fillRect(brick.x, brick.y, brick.width, brick.height);
+
+        const icon = BRICK_ICONS[brick.type];
+        if (icon) {
+            context.fillStyle = COLORS.bg;
+            context.font = "900 " + brick.height * 0.5 + 'px "Font Awesome 6 Free"';
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText(icon, brick.x + brick.width / 2, brick.y + brick.height / 2);
+        }
     }
 
     // PAddle
@@ -538,8 +567,16 @@ class Game {
         this.hitBrick(brick);
         this.score += 10;
 
-        // thêm các loại khác sau này
+        if (brick.type === "multi" && this.isBrickBreaked(brick)) {
+            this.spawnExtraBalls(ball);
+        }
+
+        if (this.level.spdUpPerHit > 0) {
+            this.increaseSpd();
+        }
+
     }
+
     // Thông báo kq
     showOverlay(title, text, showNextButton) {
         this.overlayTitle.textContent = title;
@@ -571,6 +608,7 @@ class Game {
             this.levelBtns[i].classList.toggle("active", i === this.levelIndex);
         }
     }
+
     drawText(text, y, withBox) {
         const context = this.context;
         context.font = "bold 20px Arial";
@@ -585,7 +623,36 @@ class Game {
         context.fillStyle = COLORS.text;
         context.fillText(text, CAN_W / 2, y);
     }
+
+    // Sinh thêm 2 bóng bay lệch 2 bên so với hướng của bóng vừa đập gạch
+    spawnExtraBalls(fromBall) {
+        const offsets = [-30, 30];   // độ lệch (độ)
+        const baseAngle = Math.atan2(fromBall.dy, fromBall.dx);
+
+        for (const offset of offsets) {
+            if (this.balls.length + this.newBalls.length >= MAX_BALL) break;
+
+            const angle = baseAngle + offset * Math.PI / 180;
+            const newBall = this.createBall(fromBall.x, fromBall.y, BALL_RAD);
+            newBall.dx = Math.cos(angle) * this.currSpd;
+            newBall.dy = Math.sin(angle) * this.currSpd;
+            this.newBalls.push(newBall);
+        }
+
+    }
+
+    // Tăng tốc độ cho tất cả bóng đang có
+    increaseSpd() {
+        this.currSpd = Math.min(this.currSpd + this.level.spdUpPerHit, this.level.maxSpd);
+        for (const ball of this.balls) {
+            this.setBallSpeed(ball, this.currSpd);
+        }
+        for (const ball of this.newBalls) {
+            this.setBallSpeed(ball, this.currSpd);
+        }
+    }
 }
+
 window.addEventListener("load", () => {
     const canvas = document.getElementById("gameCanvas");
     if (canvas) {
