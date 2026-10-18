@@ -6,6 +6,7 @@ const BALL_RAD = 15;
 const MAX_BALL = 5;
 const MAX_BOUNCE_ANGLE = 60 * Math.PI / 180; //góc bật 60 độ giữ bóng ko đi ngang khi chạm méo paddle làm chờ lâu
 const DEF_PAD_W = 100;
+const SHIELD_TIME = 10 * 60;   // khiên tồn tại 10s
 
 const COLORS = {
     bg: "#f1f2f6",          //  xám rất nhạt
@@ -15,6 +16,7 @@ const COLORS = {
     brick2: "#ff9f43",      //  cam
     brick3: "#ee5253",      //  đỏ
     brickSteel: "#747d8c",  //  xám đậm
+    brickShield: "#a4b0be", //  xám nhạt
     brickMulti: "#10ac84",  //  xanh lá
     text: "#2f3542",
     textBoxBg: "#ced6e0"
@@ -22,6 +24,7 @@ const COLORS = {
 
 const BRICK_ICONS = {
     multi: "\uf055",   // fa-circle-plus : gạch sinh thêm bóng
+    shield: "\uf132"   // fa-shield      : gạch item khiên
 };
 
 const BRICK_SETTING = {
@@ -71,10 +74,10 @@ const LEVELS = [{
             ".121X1X121."
         ]
     }, {
-        name: "X3 bóng - Tằng tốc mỗi lần bóng chạm gạch",
-        ballsSpd: 5.5,
+        name: "X3 bóng",
+        ballsSpd: 6.0,
         spdUpPerHit: 0.1,
-        maxSpd: 11.0,
+        maxSpd: 9,
         padW: DEF_PAD_W,
         layout: [
             "...22222...",
@@ -85,6 +88,25 @@ const LEVELS = [{
             ".112M1M211.",
             ".112111211.",
             ".112111211."
+        ]
+    }, {
+        name: "Gạch di chuyển + khiên",
+        ballsSpd: 6.0,
+        spdUpPerHit: 0,
+        maxSpd: 6.0,
+        moveSpd: 2.5,     // tốc độ gạch steel di chuyển
+        moveRange: 120,   // gạch chạy qua lại trong khoảng ±120px quanh vị trí gốc
+        padW: DEF_PAD_W,
+        layout: [
+            "11111111111",
+            "12222222221",
+            "111S111S111",
+            "1.M.....M.1",
+            "1..>>.....1",
+            "1.........1",
+            "1.....<<..1",
+            "11111111111",
+            "11111111111"
         ]
     }
 
@@ -105,6 +127,7 @@ class Game {
         this.score = 0;
         this.lives = MAX_LIVES;
         this.currSpd = 0;
+        this.shieldTime = 0;   // thời gian khiên còn lại (0 = không có khiên)
 
         this.state = "ready";
         this.isPaused = false;
@@ -134,11 +157,12 @@ class Game {
         return Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
     }
 
-    setBallSpeed(ball, newSpd) {
-        const currSpd = this.getBallSpeed(ball);
-        if (currSpd === 0) return;
-        ball.dx = ball.dx / currSpd * newSpd;
-        ball.dy = ball.dy / currSpd * newSpd;
+    // đổi tốc độ nhưng giữ nguyên hướng bay
+    setBallSpeed(ball, newSpeed) {
+        const currSpeed = this.getBallSpeed(ball);
+        if (currSpeed === 0) return;
+        ball.dx = ball.dx / currSpeed * newSpeed;
+        ball.dy = ball.dy / currSpeed * newSpeed;
     }
 
     updateBall(ball, step) {
@@ -175,7 +199,10 @@ class Game {
             width: width,
             height: height,
             type: type,
-            hp: hp
+            hp: hp,
+            startX: x,          // vị trí gốc (dùng cho gạch di chuyển)
+            moveDir: 0,         // 0 = đứng yên, 1 = sang phải, -1 = sang trái
+            isShield: false     // true = thanh khiên
         };
     }
 
@@ -193,6 +220,7 @@ class Game {
     }
 
     getBrickColor(brick) {
+        if (brick.type === "shield") return COLORS.brickShield;
         if (brick.type === "steel") return COLORS.brickSteel;
         if (brick.type === "multi") return COLORS.brickMulti;
         if (brick.hp === 3 || brick.type === "3") return COLORS.brick3;
@@ -207,11 +235,28 @@ class Game {
 
         const icon = BRICK_ICONS[brick.type];
         if (icon) {
-            context.fillStyle = COLORS.bg;
+            context.fillStyle = brick.type === "shield" ? COLORS.text : COLORS.bg;
             context.font = "900 " + brick.height * 0.5 + 'px "Font Awesome 6 Free"';
             context.textAlign = "center";
             context.textBaseline = "middle";
             context.fillText(icon, brick.x + brick.width / 2, brick.y + brick.height / 2);
+        }
+    }
+
+    // Gạch steel di chuyển qua lại quanh vị trí gốc
+    updateBricks(step) {
+        for (const brick of this.bricks) {
+            if (brick.moveDir === 0) continue;
+            brick.x += brick.moveDir * this.level.moveSpd * step;
+
+            if (brick.x > brick.startX + this.level.moveRange) {
+                brick.x = brick.startX + this.level.moveRange;
+                brick.moveDir = -1;
+            }
+            if (brick.x < brick.startX - this.level.moveRange) {
+                brick.x = brick.startX - this.level.moveRange;
+                brick.moveDir = 1;
+            }
         }
     }
 
@@ -343,6 +388,7 @@ class Game {
         this.lives = MAX_LIVES;
         this.isPaused = false;
 
+        this.shieldTime = 0;
         this.setPaddleWidth(this.level.padW);
         this.bricks = this.createBricks(this.level.layout);
         this.resetBall();
@@ -369,6 +415,13 @@ class Game {
                     bricks.push(this.createBrick(x, y, setting.width, setting.height, "steel", Infinity));
                 } else if (char === "M") {
                     bricks.push(this.createBrick(x, y, setting.width, setting.height, "multi", 1));
+                } else if (char === "S") {
+                    bricks.push(this.createBrick(x, y, setting.width, setting.height, "shield", 1));
+                } else if (char === "<" || char === ">") {
+                    // gạch steel di chuyển: ">" chạy sang phải trước, "<" chạy sang trái trước
+                    const brick = this.createBrick(x, y, setting.width, setting.height, "steel", Infinity);
+                    brick.moveDir = char === ">" ? 1 : -1;
+                    bricks.push(brick);
                 } else {
                     bricks.push(this.createBrick(x, y, setting.width, setting.height, "normal", Number(char)));
                 }
@@ -446,6 +499,7 @@ class Game {
 
     update(step) {
         this.updatePaddle(step);
+        this.updateBricks(step);
 
         if (this.state === "ready") {
             this.balls[0].x = this.getPaddleCenterX();
@@ -462,6 +516,14 @@ class Game {
         this.newBalls = [];
         this.bricks = this.bricks.filter((brick) => !this.isBrickBreaked(brick));
         this.balls = this.balls.filter((ball) => ball.y - ball.radius < CAN_H);
+
+        if (this.shieldTime > 0) {
+            this.shieldTime -= step;
+            if (this.shieldTime <= 0) {
+                // hết 10 giây: bỏ thanh khiên
+                this.bricks = this.bricks.filter((brick) => !brick.isShield);
+            }
+        }
 
         if (this.balls.length === 0) {
             this.loseLife();
@@ -520,7 +582,7 @@ class Game {
 
     winLevel() {
         this.state = "won";
-        this.showOverlay("Hoàn thành Level " + (this.levelIndex + 1), "Điểm: " + this.score, true);
+        this.showOverlay("Hoàn thành Level " + (this.levelIndex + 1), "Điểm: " + this.score, this.levelIndex < LEVELS.length - 1);
     }
 
     isBallTouchingBrick(ball, brick) {
@@ -569,6 +631,10 @@ class Game {
 
         if (brick.type === "multi" && this.isBrickBreaked(brick)) {
             this.spawnExtraBalls(ball);
+        }
+
+        if (brick.type === "shield" && this.isBrickBreaked(brick)) {
+            this.activateShield();
         }
 
         if (this.level.spdUpPerHit > 0) {
@@ -639,6 +705,16 @@ class Game {
             this.newBalls.push(newBall);
         }
 
+    }
+
+    activateShield() {
+        if (this.shieldTime <= 0) {
+            const y = this.paddle.y + this.paddle.height + 5;
+            const brick = this.createBrick(0, y, CAN_W, CAN_H - y, "steel", Infinity);
+            brick.isShield = true;
+            this.bricks.push(brick);
+        }
+        this.shieldTime = SHIELD_TIME;
     }
 
     // Tăng tốc độ cho tất cả bóng đang có
