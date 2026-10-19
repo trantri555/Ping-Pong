@@ -108,6 +108,33 @@ const LEVELS = [{
             "11111111111",
             "11111111111"
         ]
+    },
+    {
+        name: "Gạch ẩn hiện + Thanh đỡ co giãn",
+        ballsSpd: 6.0,
+        spdUpPerHit: 0,
+        maxSpd: 6.0,
+        toggleTime: 3 * 60,   // 3s toggle
+        padMinW: 50,          // tầm co giãn
+        padMaxW: 160,
+        padChangeSpd: 0.5,    // pixel đổi mỗi frame
+        padW: DEF_PAD_W,
+        layout: [
+            "....111....",
+            "...12221...",
+            "...12321...",
+            "...12221...",
+            ".X..111..X.",
+            "..X.....X..",
+            ".111...111.",
+            "12221X12221",
+            "12M21X12S21",
+            "12221X12221",
+            ".111...111.",
+            "..X.....X..",
+            ".X...X...X."
+
+        ]
     }
 
 ];
@@ -127,7 +154,10 @@ class Game {
         this.score = 0;
         this.lives = MAX_LIVES;
         this.currSpd = 0;
-        this.shieldTime = 0;   // thời gian khiên còn lại (0 = không có khiên)
+        this.shieldTime = 0;
+        this.steelHidden = false;
+        this.toggleTimer = 0;       // đếm ngược tới lần ẩn/hiện tiếp theo
+        this.padDir = 1;
 
         this.state = "ready";
         this.isPaused = false;
@@ -200,9 +230,10 @@ class Game {
             height: height,
             type: type,
             hp: hp,
-            startX: x,          // vị trí gốc (dùng cho gạch di chuyển)
+            startX: x,          // vị trí gốc (gạch di chuyển)
             moveDir: 0,         // 0 = đứng yên, 1 = sang phải, -1 = sang trái
-            isShield: false     // true = thanh khiên
+            isShield: false,
+            isHidden: false
         };
     }
 
@@ -229,6 +260,7 @@ class Game {
     }
 
     drawBrick(brick) {
+        if (brick.isHidden) return;
         const context = this.context;
         this.context.fillStyle = this.getBrickColor(brick);
         this.context.fillRect(brick.x, brick.y, brick.width, brick.height);
@@ -258,6 +290,33 @@ class Game {
                 brick.moveDir = 1;
             }
         }
+    }
+
+    updateSteelBricks(step) {
+        if (!this.level.toggleTime) return;
+        this.toggleTimer -= step;
+        if (this.toggleTimer > 0) return;
+
+        if (this.steelHidden && this.isBallNearSteel()) return;
+
+        this.steelHidden = !this.steelHidden;
+        for (const brick of this.bricks) {
+            if (brick.type === "steel") brick.isHidden = this.steelHidden;
+        }
+        this.toggleTimer = this.level.toggleTime;
+    }
+
+    isBallNearSteel() {
+        for (const ball of this.balls) {
+            for (const brick of this.bricks) {
+                if (brick.type !== "steel") continue;
+                if (ball.x > brick.x - ball.radius && ball.x < brick.x + brick.width + ball.radius &&
+                    ball.y > brick.y - ball.radius && ball.y < brick.y + brick.height + ball.radius) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // PAddle
@@ -301,6 +360,21 @@ class Game {
         if (this.paddle.moveLeft) this.paddle.x -= this.paddle.padSpd * step;
         if (this.paddle.moveRight) this.paddle.x += this.paddle.padSpd * step;
         this.keepPaddleInside();
+    }
+
+    updatePaddleSize(step) {
+        if (!this.level.padChangeSpd) return;
+
+        let newWidth = this.paddle.width + this.padDir * this.level.padChangeSpd * step;
+        if (newWidth > this.level.padMaxW) {
+            newWidth = this.level.padMaxW;
+            this.padDir = -1;
+        }
+        if (newWidth < this.level.padMinW) {
+            newWidth = this.level.padMinW;
+            this.padDir = 1;
+        }
+        this.setPaddleWidth(newWidth);
     }
 
     drawPaddle() {
@@ -389,6 +463,9 @@ class Game {
         this.isPaused = false;
 
         this.shieldTime = 0;
+        this.steelHidden = false;
+        this.toggleTimer = this.level.toggleTime;
+        this.padDir = 1;
         this.setPaddleWidth(this.level.padW);
         this.bricks = this.createBricks(this.level.layout);
         this.resetBall();
@@ -507,6 +584,11 @@ class Game {
             return;
         }
         if (this.state !== "playing") return;
+
+
+        this.updateSteelBricks(step);
+        this.updatePaddleSize(step);
+
         for (const ball of this.balls) {
             this.updateBall(ball, step);
             this.checkPaddleCollision(ball);
@@ -555,7 +637,7 @@ class Game {
 
     checkBrickCollision(ball) {
         for (const brick of this.bricks) {
-            if (this.isBrickBreaked(brick)) continue;
+            if (this.isBrickBreaked(brick) || brick.isHidden) continue;
             if (!this.isBallTouchingBrick(ball, brick)) continue;
 
             this.bounceBallOffBrick(ball, brick);
@@ -618,8 +700,9 @@ class Game {
                 ball.y = brick.y - ball.radius;
             }
         } else {
-            // Trường hợp tâm bóng nằm trong gạch
-            ball.dy = -ball.dy;
+            // Trường hợp tâm bóng nằm trong gạch: đưa bóng lên trên mặt gạch rồi cho bay lên
+            ball.y = brick.y - ball.radius;
+            ball.dy = -Math.abs(ball.dy);
         }
     }
 
