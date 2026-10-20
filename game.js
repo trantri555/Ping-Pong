@@ -18,13 +18,17 @@ const COLORS = {
     brickSteel: "#747d8c",  //  xám đậm
     brickShield: "#a4b0be", //  xám nhạt
     brickMulti: "#10ac84",  //  xanh lá
+    portalIn: "#6c5ce7",    //  tím sáng 
+    portalOut: "#00cec9",   //  cyan 
     text: "#2f3542",
     textBoxBg: "#ced6e0"
 };
 
 const BRICK_ICONS = {
-    multi: "\uf055",   // fa-circle-plus : gạch sinh thêm bóng
-    shield: "\uf132"   // fa-shield      : gạch item khiên
+    multi: "\uf055",       // fa-circle-plus : gạch sinh thêm bóng
+    shield: "\uf132",      // fa-shield      : gạch item khiên
+    portalIn: "\uf0ec",    // fa-right-left : cổng
+    portalOut: "\uf0ec"    // fa-right-left : cổng
 };
 
 const BRICK_SETTING = {
@@ -58,84 +62,110 @@ const LEVELS = [{
         ".....1....."
     ]
 },
-    {
-        name: "Gạch cứng hơn",
-        ballsSpd: 6.0,
-        spdUpPerHit: 0,
-        maxSpd: 5.5,
-        padW: DEF_PAD_W,
-        layout: [
-            ".121X1X121.",
-            ".121X1X121.",
-            ".121X1X121.",
-            ".121X1X121.",
-            ".121X1X121.",
-            ".121X1X121.",
-            ".121X1X121."
-        ]
-    }, {
-        name: "X3 bóng",
-        ballsSpd: 6.0,
-        spdUpPerHit: 0.1,
-        maxSpd: 9,
-        padW: DEF_PAD_W,
-        layout: [
-            "...22222...",
-            "22223332222",
-            ".111111111.",
-            ".1XX111XX1.",
-            ".1XX111XX1.",
-            ".112M1M211.",
-            ".112111211.",
-            ".112111211."
-        ]
-    }, {
-        name: "Gạch di chuyển + khiên",
-        ballsSpd: 6.0,
-        spdUpPerHit: 0,
-        maxSpd: 6.0,
-        moveSpd: 2.5,     // tốc độ gạch steel di chuyển
-        moveRange: 120,   // gạch chạy qua lại trong khoảng ±120px quanh vị trí gốc
-        padW: DEF_PAD_W,
-        layout: [
-            "11111111111",
-            "12222222221",
-            "111S111S111",
-            "1.M.....M.1",
-            "1..>>.....1",
-            "1.........1",
-            "1.....<<..1",
-            "11111111111",
-            "11111111111"
-        ]
-    },
-    {
-        name: "Gạch ẩn hiện + Thanh đỡ co giãn",
-        ballsSpd: 6.0,
-        spdUpPerHit: 0,
-        maxSpd: 6.0,
-        toggleTime: 3 * 60,   // 3s toggle
-        padMinW: 50,          // tầm co giãn
-        padMaxW: 160,
-        padChangeSpd: 0.5,    // pixel đổi mỗi frame
-        padW: DEF_PAD_W,
-        layout: [
-            "....111....",
-            "...12221...",
-            "...12321...",
-            "...12221...",
-            ".X..111..X.",
-            "..X.....X..",
-            ".111...111.",
-            "12221X12221",
-            "12M21X12S21",
-            "12221X12221",
-            ".111...111.",
-            "..X.....X..",
-            ".X...X...X."
+{
+    name: "Gạch cứng hơn",
+    ballsSpd: 6.0,
+    spdUpPerHit: 0,
+    maxSpd: 5.5,
+    padW: DEF_PAD_W,
+    layout: [
+        ".121X1X121.",
+        ".121X1X121.",
+        ".121X1X121.",
+        ".121X1X121.",
+        ".121X1X121.",
+        ".121X1X121.",
+        ".121X1X121."
+    ]
+}, {
+    name: "X3 bóng + Tốc độ bóng tăng dần",
+    ballsSpd: 6.0,
+    spdUpPerHit: 0.1,
+    maxSpd: 9,
+    padW: DEF_PAD_W,
+    layout: [
+        "...22222...",
+        "22223332222",
+        ".111111111.",
+        ".1XX111XX1.",
+        ".1XX111XX1.",
+        ".112M1M211.",
+        ".112111211.",
+        ".112111211."
+    ]
+}, {
+    name: "Gạch di chuyển + Khiên",
+    ballsSpd: 6.0,
+    spdUpPerHit: 0,
+    maxSpd: 6.0,
+    moveSpd: 2.5,     // tốc độ gạch steel di chuyển
+    moveRange: 120,   // gạch chạy qua lại trong khoảng ±120px quanh vị trí gốc
+    padW: DEF_PAD_W,
+    layout: [
+        "11111111111",
+        "12222222221",
+        "111S111S111",
+        "1.M.....M.1",
+        "1..>>.....1",
+        "1.........1",
+        "1.....<<..1",
+        "11111111111",
+        "11111111111"
+    ]
+},
+{
+    name: "Gạch ẩn hiện + Thanh đỡ co giãn",
+    ballsSpd: 6.0,
+    spdUpPerHit: 0,
+    maxSpd: 6.0,
+    toggleTime: 3 * 60,   // 3s toggle
+    padMinW: 50,          // tầm co giãn
+    padMaxW: 120,
+    padChangeSpd: 0.5,    // pixel đổi mỗi frame
+    padW: DEF_PAD_W,
+    layout: [
+        "....111....",
+        "...12221...",
+        "...12321...",
+        "...12221...",
+        ".X..111..X.",
+        "..X.....X..",
+        ".111...111.",
+        "12221X12221",
+        "12M21X12S21",
+        "12221X12221",
+        ".111...111.",
+        "..X.....X..",
+        ".X...X...X."
 
-        ]
-    }
+    ]
+},
+{
+    name: "Cổng dịch chuyển",
+    ballsSpd: 6.0,
+    spdUpPerHit: 0,
+    maxSpd: 6.0,
+    padW: DEF_PAD_W,
+    portals: [
+        { inChar: "A", outChar: "a" },
+        { inChar: "B", outChar: "b" }
+    ],
+    layout: [
+        "33333X33333",
+        "11111X11111",
+        "33M33X33M33",
+        "X1111X1111X",
+        "X3333X3333X",
+        "...........",
+        "X.b.....a.X",
+        "X.........X",
+        "X1111X1111X",
+        "X3333X3333X",
+        "...........",
+        "A.........B",
+        "..........."
+    ]
+}
 
 ];
 
@@ -148,6 +178,7 @@ class Game {
         this.balls = [];
         this.newBalls = [];
         this.bricks = [];
+        this.portals = [];
 
         this.levelIndex = 0;
         this.level = LEVELS[0];
@@ -178,7 +209,8 @@ class Game {
             y: y,
             radius: radius,
             dx: 0,
-            dy: 0
+            dy: 0,
+            lastPortal: null
         };
     }
 
@@ -233,12 +265,13 @@ class Game {
             startX: x,          // vị trí gốc (gạch di chuyển)
             moveDir: 0,         // 0 = đứng yên, 1 = sang phải, -1 = sang trái
             isShield: false,
-            isHidden: false
+            isHidden: false,
+            portalGroup: null
         };
     }
 
     isBrickUnbreakable(brick) {
-        return brick.type === "steel";
+        return brick.type === "steel" || brick.type === "portalIn" || brick.type === "portalOut";
     }
 
     isBrickBreaked(brick) {
@@ -254,6 +287,8 @@ class Game {
         if (brick.type === "shield") return COLORS.brickShield;
         if (brick.type === "steel") return COLORS.brickSteel;
         if (brick.type === "multi") return COLORS.brickMulti;
+        if (brick.type === "portalIn") return COLORS.portalIn;
+        if (brick.type === "portalOut") return COLORS.portalOut;
         if (brick.hp === 3 || brick.type === "3") return COLORS.brick3;
         if (brick.hp === 2 || brick.type === "2") return COLORS.brick2;
         return COLORS.brick1;
@@ -262,6 +297,29 @@ class Game {
     drawBrick(brick) {
         if (brick.isHidden) return;
         const context = this.context;
+        const cx = brick.x + brick.width / 2;
+        const cy = brick.y + brick.height / 2;
+
+        if (brick.type === "portalIn" || brick.type === "portalOut") {
+            const baseColor = brick.type === "portalIn" ? COLORS.portalIn : COLORS.portalOut;
+            context.save();
+            context.shadowColor = baseColor;
+            context.shadowBlur = 12;
+            context.fillStyle = baseColor;
+            context.fillRect(brick.x, brick.y, brick.width, brick.height);
+            context.restore();
+            context.strokeStyle = "#fff";
+            context.lineWidth = 2;
+            context.strokeRect(brick.x + 1, brick.y + 1, brick.width - 2, brick.height - 2);
+            const icon = BRICK_ICONS[brick.type];
+            context.fillStyle = "#fff";
+            context.font = "900 " + brick.height * 0.5 + 'px "Font Awesome 6 Free"';
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText(icon, cx, cy);
+            return;
+        }
+
         this.context.fillStyle = this.getBrickColor(brick);
         this.context.fillRect(brick.x, brick.y, brick.width, brick.height);
 
@@ -271,7 +329,7 @@ class Game {
             context.font = "900 " + brick.height * 0.5 + 'px "Font Awesome 6 Free"';
             context.textAlign = "center";
             context.textBaseline = "middle";
-            context.fillText(icon, brick.x + brick.width / 2, brick.y + brick.height / 2);
+            context.fillText(icon, cx, cy);
         }
     }
 
@@ -468,6 +526,7 @@ class Game {
         this.padDir = 1;
         this.setPaddleWidth(this.level.padW);
         this.bricks = this.createBricks(this.level.layout);
+        this.portals = this.buildPortalPairs();
         this.resetBall();
 
         this.hideOverlay();
@@ -479,6 +538,14 @@ class Game {
     createBricks(layout) {
         const bricks = [];
         const setting = BRICK_SETTING;
+        const portalDefs = this.level.portals || [];
+
+        const portalInChars = {};
+        const portalOutChars = {};
+        for (const def of portalDefs) {
+            portalInChars[def.inChar] = def.inChar;
+            portalOutChars[def.outChar] = def.inChar;
+        }
 
         for (let row = 0; row < layout.length; row++) {
             for (let col = 0; col < layout[row].length; col++) {
@@ -495,9 +562,18 @@ class Game {
                 } else if (char === "S") {
                     bricks.push(this.createBrick(x, y, setting.width, setting.height, "shield", 1));
                 } else if (char === "<" || char === ">") {
-                    // gạch steel di chuyển: ">" chạy sang phải trước, "<" chạy sang trái trước
                     const brick = this.createBrick(x, y, setting.width, setting.height, "steel", Infinity);
                     brick.moveDir = char === ">" ? 1 : -1;
+                    bricks.push(brick);
+                } else if (portalInChars[char] !== undefined) {
+                    // Cổng vào
+                    const brick = this.createBrick(x, y, setting.width, setting.height, "portalIn", Infinity);
+                    brick.portalGroup = portalInChars[char];
+                    bricks.push(brick);
+                } else if (portalOutChars[char] !== undefined) {
+                    // Cổng ra
+                    const brick = this.createBrick(x, y, setting.width, setting.height, "portalOut", Infinity);
+                    brick.portalGroup = portalOutChars[char];
                     bricks.push(brick);
                 } else {
                     bricks.push(this.createBrick(x, y, setting.width, setting.height, "normal", Number(char)));
@@ -505,6 +581,37 @@ class Game {
             }
         }
         return bricks;
+    }
+
+    // Ghép cặp cổng vào – ra 
+    buildPortalPairs() {
+        const pairs = [];
+        const inMap = {};
+        const outMap = {};
+        for (const brick of this.bricks) {
+            if (brick.type === "portalIn") {
+                if (!inMap[brick.portalGroup]) inMap[brick.portalGroup] = [];
+                inMap[brick.portalGroup].push(brick);
+            }
+            if (brick.type === "portalOut") {
+                if (!outMap[brick.portalGroup]) outMap[brick.portalGroup] = [];
+                outMap[brick.portalGroup].push(brick);
+            }
+        }
+        for (const group in inMap) {
+            const ins = inMap[group] || [];
+            const outs = outMap[group] || [];
+            for (let i = 0; i < ins.length; i++) {
+                const outBrick = outs[i] || outs[0];
+                if (outBrick && ins[i]) {
+                    const inBrick = ins[i];
+                    inBrick.portalPartner = outBrick;
+                    outBrick.portalPartner = inBrick;
+                    pairs.push({ inBrick: inBrick, outBrick: outBrick });
+                }
+            }
+        }
+        return pairs;
     }
 
     resetBall() {
@@ -592,6 +699,7 @@ class Game {
         for (const ball of this.balls) {
             this.updateBall(ball, step);
             this.checkPaddleCollision(ball);
+            this.checkPortalCollision(ball);
             this.checkBrickCollision(ball);
         }
         this.balls = this.balls.concat(this.newBalls);
@@ -638,11 +746,44 @@ class Game {
     checkBrickCollision(ball) {
         for (const brick of this.bricks) {
             if (this.isBrickBreaked(brick) || brick.isHidden) continue;
+            if (brick.type === "portalIn" || brick.type === "portalOut") continue;
             if (!this.isBallTouchingBrick(ball, brick)) continue;
 
             this.bounceBallOffBrick(ball, brick);
             this.onBrickHit(ball, brick);
             return;
+        }
+    }
+
+    checkPortalCollision(ball) {
+        for (const brick of this.bricks) {
+            if (brick.type !== "portalIn" && brick.type !== "portalOut") continue;
+            if (!brick.portalPartner) continue;
+            if (brick.isHidden) continue;
+
+            if (ball.lastPortal === brick) continue;
+
+            if (!this.isBallTouchingBrick(ball, brick)) continue;
+
+            const target = brick.portalPartner;
+            const spd = this.getBallSpeed(ball);
+
+            if (spd > 0) {
+                const nx = ball.dx / spd;
+                const ny = ball.dy / spd;
+                ball.x = (target.x + target.width / 2) + nx * (target.width / 2 + ball.radius + 3);
+                ball.y = (target.y + target.height / 2) + ny * (target.height / 2 + ball.radius + 3);
+            } else {
+                ball.x = target.x + target.width / 2;
+                ball.y = target.y + target.height / 2;
+            }
+
+            ball.lastPortal = target;
+            return;
+        }
+
+        if (ball.lastPortal && !this.isBallTouchingBrick(ball, ball.lastPortal)) {
+            ball.lastPortal = null;
         }
     }
 
