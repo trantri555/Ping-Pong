@@ -4,31 +4,31 @@ const CAN_H = 940;
 const MAX_LIVES = 3;
 const BALL_RAD = 15;
 const MAX_BALL = 5;
-const MAX_BOUNCE_ANGLE = 60 * Math.PI / 180; //góc bật 60 độ giữ bóng ko đi ngang khi chạm méo paddle làm chờ lâu
+const MAX_BOUNCE_ANGLE = 60 * Math.PI / 180; //góc bật 60
 const DEF_PAD_W = 100;
-const SHIELD_TIME = 10 * 60;   // khiên tồn tại 10s
+const SHIELD_TIME = 10 * 60;   // khiên 10s
 
 const COLORS = {
-    bg: "#f1f2f6",          //  xám rất nhạt
-    pad: "#5f27cd",         //  tím
-    ball: "#1e272e",        //  đen xám
-    brick1: "#2e86de",      //  xanh dương
-    brick2: "#ff9f43",      //  cam
-    brick3: "#ee5253",      //  đỏ
-    brickSteel: "#747d8c",  //  xám đậm
-    brickShield: "#a4b0be", //  xám nhạt
-    brickMulti: "#10ac84",  //  xanh lá
-    portalIn: "#6c5ce7",    //  tím sáng 
-    portalOut: "#00cec9",   //  cyan 
+    bg: "#f1f2f6",
+    pad: "#5f27cd",
+    ball: "#1e272e",
+    brick1: "#2e86de",
+    brick2: "#ff9f43",
+    brick3: "#ee5253",
+    brickSteel: "#747d8c",
+    brickShield: "#a4b0be",
+    brickMulti: "#10ac84",
+    portalIn: "#6c5ce7",
+    portalOut: "#00cec9",
     text: "#2f3542",
     textBoxBg: "#ced6e0"
 };
 
 const BRICK_ICONS = {
-    multi: "\uf055",       // fa-circle-plus : gạch sinh thêm bóng
-    shield: "\uf132",      // fa-shield      : gạch item khiên
-    portalIn: "\uf0ec",    // fa-right-left : cổng
-    portalOut: "\uf0ec"    // fa-right-left : cổng
+    multi: "\uf055",
+    shield: "\uf132",
+    portalIn: "\uf0ec",
+    portalOut: "\uf0ec"
 };
 
 const BRICK_SETTING = {
@@ -99,7 +99,7 @@ const LEVELS = [{
     spdUpPerHit: 0,
     maxSpd: 6.0,
     moveSpd: 2.5,     // tốc độ gạch steel di chuyển
-    moveRange: 120,   // gạch chạy qua lại trong khoảng ±120px quanh vị trí gốc
+    moveRange: 120,   // gạch chạy qua lại quanh vị trí gốc
     padW: DEF_PAD_W,
     layout: [
         "11111111111",
@@ -916,7 +916,7 @@ class Game {
 
     // Sinh thêm 2 bóng bay lệch 2 bên so với hướng của bóng vừa đập gạch
     spawnExtraBalls(fromBall) {
-        const offsets = [-30, 30];   // độ lệch (độ)
+        const offsets = [-10, 10];   // độ lệch
         const baseAngle = Math.atan2(fromBall.dy, fromBall.dx);
 
         for (const offset of offsets) {
@@ -941,7 +941,7 @@ class Game {
         this.shieldTime = SHIELD_TIME;
     }
 
-    // Tăng tốc độ cho tất cả bóng đang có
+    // Tăng tốc độ cho tất cả bóng
     increaseSpd() {
         this.currSpd = Math.min(this.currSpd + this.level.spdUpPerHit, this.level.maxSpd);
         for (const ball of this.balls) {
